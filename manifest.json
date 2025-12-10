@@ -1,0 +1,23 @@
+{
+  "name": "JARVIS V2 - Assistant IA",
+  "short_name": "JARVIS",
+  "description": "Assistant personnel IA avec reconnaissance vocale",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ffd700",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "scope": "./",
+  "prefer_related_applications": false
+}

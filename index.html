@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="JARVIS - Assistant IA personnel avec mode vocal">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>JARVIS V2 – Assistant IA</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 450px;
+      background: rgba(27, 27, 27, 0.95);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow:
+        0 0 60px rgba(255, 140, 0, 0.3),
+        0 0 120px rgba(255, 60, 0, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 140, 0, 0.2);
+    }
+
+    #header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #header h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      letter-spacing: 4px;
+      margin-bottom: 5px;
+    }
+
+    #header p {
+      font-size: 12px;
+      color: #999;
+      letter-spacing: 1px;
+    }
+
+    #chat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 280px;
+      border: 2px solid rgba(255, 140, 0, 0.3);
+      border-radius: 15px;
+      background:
+        radial-gradient(circle at center, rgba(255, 100, 0, 0.1) 0%, transparent 70%),
+        #0a0a0a;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #logo {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      object-fit: cover;
+      animation: reactorGlow 3s infinite ease-in-out;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes reactorGlow {
+      0%, 100% {
+        box-shadow:
+          0 0 40px rgba(255, 160, 0, 0.9),
+          0 0 80px rgba(255, 120, 0, 0.6),
+          0 0 120px rgba(255, 60, 0, 0.3);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow:
+          0 0 60px rgba(255, 200, 0, 1),
+          0 0 100px rgba(255, 100, 0, 0.8),
+          0 0 150px rgba(255, 40, 0, 0.4);
+        transform: scale(1.02);
+      }
+    }
+
+    #status {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: #66ccff;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px 15px;
+      border-radius: 20px;
+      border: 1px solid rgba(102, 204, 255, 0.3);
+      display: none;
+    }
+
+    #status.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    #history {
+      background: rgba(14, 14, 14, 0.8);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: left;
+      font-size: 14px;
+      color: #ccc;
+      min-height: 100px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 100, 0, 0.2);
+      scroll-behavior: smooth;
+    }
+
+    #history::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #history::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+    }
+
+    #history::-webkit-scrollbar-thumb {
+      background: rgba(255, 140, 0, 0.5);
+      border-radius: 10px;
+    }
+
+    #history::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 140, 0, 0.8);
+    }
+
+    #history p {
+      margin: 12px 0;
+      line-height: 1.5;
+    }
+
+    .user {
+      color: #ffb347;
+      font-weight: 600;
+    }
+
+    .bot {
+      color: #66ccff;
+      margin-top: 5px;
+      display: block;
+    }
+
+    #input-zone {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    #userInput {
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: 2px solid rgba(255, 140, 0, 0.3);
+      border-radius: 12px;
+      outline: none;
+      resize: none;
+      height: 70px;
+      font-size: 14px;
+      font-family: inherit;
+      background: rgba(20, 20, 20, 0.8);
+      color: white;
+      transition: border-color 0.3s;
+    }
+
+    #userInput:focus {
+      border-color: rgba(255, 140, 0, 0.6);
+    }
+
+    #userInput::placeholder {
+      color: #666;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: radial-gradient(circle at center, #ffd700 30%, #cc0000 100%);
+      border: none;
+      border-radius: 50%;
+      width: 58px;
+      height: 58px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 30px rgba(255, 0, 0, 0.6);
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    #voiceBtn {
+      background: radial-gradient(circle at center, #00d4ff 30%, #0066cc 100%);
+      box-shadow: 0 4px 20px rgba(0, 100, 255, 0.4);
+    }
+
+    #voiceBtn:hover {
+      box-shadow: 0 6px 30px rgba(0, 150, 255, 0.6);
+    }
+
+    #voiceBtn.recording {
+      background: radial-gradient(circle at center, #ff4444 30%, #cc0000 100%);
+      animation: pulseRecording 1.2s infinite;
+    }
+
+    @keyframes pulseRecording {
+      0%, 100% {
+        box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 45px rgba(255, 0, 0, 1);
+        transform: scale(1.06);
+      }
+    }
+
+    .btn-icon {
+      width: 26px;
+      height: 26px;
+      fill: white;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    #footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #666;
+      opacity: 0.9;
+    }
+
+    #footer span {
+      color: #d4a017;
+      font-weight: 600;
+    }
+
+    .version {
+      display: block;
+      margin-top: 5px;
+      font-size: 10px;
+      color: #555;
+    }
+
+    /* Animations d'entrée */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #app {
+      animation: slideIn 0.6s ease-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      #app {
+        padding: 20px;
+        max-width: 100%;
+      }
+
+      #header h1 {
+        font-size: 28px;
+      }
+
+      #logo {
+        width: 180px;
+        height: 180px;
+      }
+
+      #chat {
+        height: 240px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <h1>JARVIS</h1>
+      <p>ASSISTANT PERSONNEL IA</p>
+    </div>
+
+    <div id="chat">
+      <img id="logo" src="icon.png" alt="Logo JARVIS Arc Reactor">
+      <div id="status">Prêt...</div>
+    </div>
+
+    <div id="history"></div>
+
+    <div id="input-zone">
+      <textarea id="userInput" rows="3" placeholder="Parlez ou écrivez votre message..."></textarea>
+      <div class="btn-container">
+        <button id="voiceBtn" class="action-btn" title="Mode vocal - Cliquez pour enregistrer">
+          <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+        <button id="sendBtn" class="action-btn" title="Envoyer le message">
+          <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="footer">
+      © <span>JARVIS</span> — Design by YK
+      <span class="version">v2.0 - Voice Enabled</span>
+    </div>
+  </div>
+
+  <script>
+    // === CONFIGURATION ===
+    const WEBHOOK_URL = "https://n8n.srv846378.hstgr.cloud/webhook/77a6a624-93e6-463e-a1f4-5185239570e2";
+    const MAX_HISTORY = 3; // Nombre maximum d'échanges affichés
+
+    // === ÉLÉMENTS DOM ===
+    const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const history = document.getElementById("history");
+    const status = document.getElementById("status");
+
+    // === ÉTAT DE L'APPLICATION ===
+    let exchanges = [];
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // === FONCTIONS UTILITAIRES ===
+    function showStatus(message) {
+      status.textContent = message;
+      status.classList.add('active');
+      setTimeout(() => status.classList.remove('active'), 3000);
+    }
+
+    function updateHistory() {
+      if (exchanges.length === 0) {
+        history.innerHTML = '<p style="color: #666; text-align: center;">Aucun historique</p>';
+        return;
+      }
+
+      history.innerHTML = exchanges.map(e => `
+        <p>
+          <span class="user">🧑 ${e.user}</span><br>
+          <span class="bot">🤖 ${e.bot}</span>
+        </p>
+      `).join("");
+
+      history.scrollTop = history.scrollHeight;
+    }
+
+    async function typeText(index, text) {
+      exchanges[index].bot = "";
+      const words = text.split(' ');
+
+      for (let i = 0; i < words.length; i++) {
+        exchanges[index].bot += (i > 0 ? ' ' : '') + words[i];
+        updateHistory();
+        await new Promise(resolve => setTimeout(resolve, 40));
+      }
+    }
+
+    // === COMMUNICATION AVEC N8N ===
+    async function sendToJarvis(message, audioBlob = null) {
+      try {
+        let body;
+        let headers = { "Content-Type": "application/json" };
+
+        if (audioBlob) {
+          // Envoyer l'audio en base64 pour transcription OpenAI Whisper
+          const reader = new FileReader();
+          const base64Audio = await new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(audioBlob);
+          });
+
+          body = JSON.stringify({
+            audio: base64Audio,
+            mimeType: audioBlob.type,
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          body = JSON.stringify({
+            message,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        showStatus("Envoi en cours...");
+
+        const response = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers,
+          body
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.reply || "Réponse vide reçue du serveur.";
+
+      } catch (error) {
+        console.error("Erreur de connexion:", error);
+        return `❌ Erreur: ${error.message}. Vérifiez votre connexion.`;
+      }
+    }
+
+    // === GESTION DES MESSAGES TEXTE ===
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      exchanges.push({ user: text, bot: "" });
+      if (exchanges.length > MAX_HISTORY) {
+        exchanges = exchanges.slice(-MAX_HISTORY);
+      }
+      updateHistory();
+
+      const reply = await sendToJarvis(text);
+      const index = exchanges.length - 1;
+      await typeText(index, reply);
+
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    // === GESTION DE L'ENREGISTREMENT VOCAL ===
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100
+          }
+        });
+
+        // Détecter le format supporté
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: mimeType });
+
+          // Vérifier la taille de l'audio
+          if (audioBlob.size < 1000) {
+            showStatus("❌ Enregistrement trop court");
+            stream.getTracks().forEach(track => track.stop());
+            return;
+          }
+
+          // Afficher dans l'historique
+          exchanges.push({ user: "🎤 Message vocal", bot: "" });
+          if (exchanges.length > MAX_HISTORY) {
+            exchanges = exchanges.slice(-MAX_HISTORY);
+          }
+          updateHistory();
+
+          showStatus("Transcription en cours...");
+          const reply = await sendToJarvis(null, audioBlob);
+          const index = exchanges.length - 1;
+          await typeText(index, reply);
+
+          // Libérer les ressources
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        voiceBtn.classList.add('recording');
+        showStatus("🎤 Enregistrement... Cliquez pour arrêter");
+
+        // Désactiver les autres contrôles
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+      } catch (error) {
+        console.error("Erreur microphone:", error);
+        const errorMsg = error.name === 'NotAllowedError'
+          ? "Permission refusée. Autorisez l'accès au microphone."
+          : "Impossible d'accéder au microphone.";
+        showStatus(`❌ ${errorMsg}`);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        voiceBtn.classList.remove('recording');
+        showStatus("Traitement...");
+
+        // Réactiver les contrôles
+        input.disabled = false;
+        sendBtn.disabled = false;
+      }
+    }
+
+    // === EVENT LISTENERS ===
+    sendBtn.addEventListener("click", sendMessage);
+
+    voiceBtn.addEventListener("click", () => {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // === INITIALISATION ===
+    updateHistory();
+    showStatus("✓ Système prêt");
+
+    // === SERVICE WORKER POUR PWA ===
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('Service Worker enregistré'))
+        .catch(err => console.error('Erreur SW:', err));
+    }
+  </script>
+</body>
+</html>
