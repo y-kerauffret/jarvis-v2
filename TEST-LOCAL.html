@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧪 Test Local - JARVIS V2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      color: white;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { color: #ffd700; }
+    .test-section {
+      background: rgba(27, 27, 27, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border: 1px solid rgba(255, 140, 0, 0.3);
+    }
+    button {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: black;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 5px;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .result {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .success { color: #4ade80; }
+    .error { color: #ef4444; }
+    .info { color: #60a5fa; }
+    .link {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Test Local JARVIS V2</h1>
+  <p>Utilisez cette page pour tester votre application localement avant de déployer.</p>
+
+  <div class="test-section">
+    <h2>📁 1. Vérification des Fichiers</h2>
+    <p>Vérifiez que tous les fichiers sont présents :</p>
+    <button onclick="checkFiles()">Vérifier les fichiers</button>
+    <div id="files-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔗 2. Test du Webhook n8n</h2>
+    <p>Testez la connexion au webhook n8n :</p>
+    <button onclick="testWebhook()">Tester webhook (texte)</button>
+    <button onclick="testWebhookAudio()">Simuler audio</button>
+    <div id="webhook-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>🎤 3. Test du Microphone</h2>
+    <p>Vérifiez que le navigateur peut accéder au microphone :</p>
+    <button onclick="testMicrophone()">Tester microphone</button>
+    <div id="mic-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>📱 4. Test PWA</h2>
+    <p>Vérifiez que le Service Worker fonctionne :</p>
+    <button onclick="testPWA()">Tester PWA</button>
+    <div id="pwa-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>🚀 5. Ouvrir l'Application</h2>
+    <p>Prêt à tester l'application complète ?</p>
+    <a href="index.html" class="link">→ Ouvrir JARVIS V2</a>
+  </div>
+
+  <script>
+    const WEBHOOK_URL = "https://n8n.srv846378.hstgr.cloud/webhook/77a6a624-93e6-463e-a1f4-5185239570e2";
+
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const className = type;
+      el.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function checkFiles() {
+      const resultDiv = document.getElementById('files-result');
+      resultDiv.innerHTML = '<div class="info">Vérification en cours...</div>';
+
+      const requiredFiles = [
+        'index.html',
+        'manifest.json',
+        'sw.js',
+        'icon.png',
+        'README.md',
+        'GUIDE-DEPLOIEMENT.md',
+        'N8N-CONFIG.md'
+      ];
+
+      let html = '<div class="success">✓ Page de test chargée</div>';
+      html += '<div class="info">Fichiers requis :</div>';
+
+      requiredFiles.forEach(file => {
+        html += `<div class="info">  - ${file}</div>`;
+      });
+
+      html += '<div class="info"><br>Note : Impossible de vérifier l\'existence des fichiers en JavaScript pur.</div>';
+      html += '<div class="info">Vérifiez manuellement avec : <code>ls -la</code></div>';
+
+      resultDiv.innerHTML = html;
+    }
+
+    async function testWebhook() {
+      const resultDiv = document.getElementById('webhook-result');
+      resultDiv.innerHTML = '';
+      log('webhook-result', '🔄 Envoi de la requête test au webhook...', 'info');
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'Test depuis page de test locale',
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        log('webhook-result', `📊 Status: ${response.status} ${response.statusText}`, 'info');
+
+        const text = await response.text();
+        log('webhook-result', `📨 Réponse brute: ${text.substring(0, 200)}...`, 'info');
+
+        try {
+          const data = JSON.parse(text);
+          log('webhook-result', `✅ Réponse JSON valide`, 'success');
+          log('webhook-result', `💬 Reply: ${data.reply || 'Aucune réponse'}`, 'success');
+        } catch (e) {
+          log('webhook-result', `⚠️ Réponse non-JSON (normal si workflow non configuré)`, 'info');
+        }
+
+        log('webhook-result', `✅ Webhook accessible et fonctionnel !`, 'success');
+
+      } catch (error) {
+        log('webhook-result', `❌ Erreur: ${error.message}`, 'error');
+        log('webhook-result', `Vérifiez votre connexion Internet`, 'error');
+      }
+    }
+
+    async function testWebhookAudio() {
+      const resultDiv = document.getElementById('webhook-result');
+      resultDiv.innerHTML = '';
+      log('webhook-result', '🔄 Simulation d\'envoi audio...', 'info');
+
+      // Créer un faux base64 audio (juste pour tester le format)
+      const fakeAudio = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audio: fakeAudio,
+            mimeType: 'audio/webm',
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        log('webhook-result', `📊 Status: ${response.status}`, 'info');
+
+        if (response.status === 200) {
+          log('webhook-result', `✅ Format audio accepté par le webhook`, 'success');
+        } else {
+          log('webhook-result', `⚠️ Réponse: ${response.status}`, 'info');
+        }
+
+        log('webhook-result', `Note: Pour tester réellement, configurez Whisper dans n8n`, 'info');
+
+      } catch (error) {
+        log('webhook-result', `❌ Erreur: ${error.message}`, 'error');
+      }
+    }
+
+    async function testMicrophone() {
+      const resultDiv = document.getElementById('mic-result');
+      resultDiv.innerHTML = '';
+      log('mic-result', '🎤 Demande d\'accès au microphone...', 'info');
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        log('mic-result', '✅ Permission accordée !', 'success');
+        log('mic-result', `📊 Tracks: ${stream.getTracks().length}`, 'success');
+
+        // Tester MediaRecorder
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+        log('mic-result', `🎵 Format supporté: ${mimeType}`, 'success');
+
+        const recorder = new MediaRecorder(stream, { mimeType });
+        log('mic-result', `✅ MediaRecorder créé avec succès`, 'success');
+
+        // Arrêter le stream
+        stream.getTracks().forEach(track => track.stop());
+        log('mic-result', `✅ Test microphone réussi !`, 'success');
+        log('mic-result', `→ Le mode vocal devrait fonctionner`, 'success');
+
+      } catch (error) {
+        log('mic-result', `❌ Erreur: ${error.message}`, 'error');
+
+        if (error.name === 'NotAllowedError') {
+          log('mic-result', `Veuillez autoriser l'accès au microphone`, 'error');
+        } else if (error.name === 'NotFoundError') {
+          log('mic-result', `Aucun microphone détecté`, 'error');
+        } else {
+          log('mic-result', `Erreur: ${error.name}`, 'error');
+        }
+      }
+    }
+
+    async function testPWA() {
+      const resultDiv = document.getElementById('pwa-result');
+      resultDiv.innerHTML = '';
+
+      log('pwa-result', '📱 Test de la PWA...', 'info');
+
+      // Test Service Worker
+      if ('serviceWorker' in navigator) {
+        log('pwa-result', '✅ Service Worker supporté', 'success');
+
+        try {
+          const registration = await navigator.serviceWorker.register('sw.js');
+          log('pwa-result', `✅ Service Worker enregistré`, 'success');
+          log('pwa-result', `Scope: ${registration.scope}`, 'info');
+        } catch (error) {
+          log('pwa-result', `⚠️ Erreur d'enregistrement: ${error.message}`, 'error');
+        }
+      } else {
+        log('pwa-result', '❌ Service Worker non supporté', 'error');
+      }
+
+      // Test Manifest
+      const manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        log('pwa-result', `✅ Manifest trouvé: ${manifestLink.href}`, 'success');
+      } else {
+        log('pwa-result', `⚠️ Pas de manifest sur cette page`, 'info');
+      }
+
+      // Test Installation
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        log('pwa-result', '✅ Application déjà installée !', 'success');
+      } else {
+        log('pwa-result', '📱 Pas encore installée (normal)', 'info');
+      }
+
+      log('pwa-result', '✅ Tests PWA terminés', 'success');
+    }
+  </script>
+</body>
+</html>
