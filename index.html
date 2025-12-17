@@ -19,16 +19,71 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
       color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR GAUCHE - Formations */
+    #sidebar-formations {
+      width: 300px;
+      background: rgba(27, 27, 27, 0.95);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(255, 140, 0, 0.2);
+      border: 1px solid rgba(255, 140, 0, 0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    #sidebar-formations h2 {
+      font-size: 18px;
+      color: #ffd700;
+      text-align: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 140, 0, 0.3);
+    }
+
+    .formation-item {
+      background: rgba(14, 14, 14, 0.8);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 3px solid #ffd700;
+      transition: all 0.3s;
+    }
+
+    .formation-item:hover {
+      background: rgba(20, 20, 20, 0.9);
+      transform: translateX(5px);
+    }
+
+    .formation-client {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffb347;
+      margin-bottom: 5px;
+    }
+
+    .formation-date {
+      font-size: 12px;
+      color: #66ccff;
+    }
+
+    .formations-loading {
+      text-align: center;
+      color: #999;
+      font-size: 13px;
       padding: 20px;
     }
 
     #app {
-      width: 100%;
-      max-width: 450px;
+      flex: 1;
+      max-width: 500px;
       background: rgba(27, 27, 27, 0.95);
       padding: 25px;
       border-radius: 20px;
@@ -37,26 +92,6 @@
         0 0 120px rgba(255, 60, 0, 0.2);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 140, 0, 0.2);
-    }
-
-    #header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    #header h1 {
-      font-size: 32px;
-      font-weight: bold;
-      color: #ffd700;
-      text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-      letter-spacing: 4px;
-      margin-bottom: 5px;
-    }
-
-    #header p {
-      font-size: 12px;
-      color: #999;
-      letter-spacing: 1px;
     }
 
     #chat {
@@ -302,34 +337,63 @@
     }
 
     /* Responsive */
-    @media (max-width: 480px) {
-      #app {
-        padding: 20px;
-        max-width: 100%;
+    @media (max-width: 1024px) {
+      body {
+        flex-direction: column;
       }
 
-      #header h1 {
-        font-size: 28px;
+      #sidebar-formations {
+        width: 100%;
+        max-height: 300px;
+        margin-bottom: 20px;
+      }
+
+      #app {
+        width: 100%;
+        max-width: 600px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      #sidebar-formations {
+        max-height: 200px;
+        padding: 15px;
+      }
+
+      #app {
+        padding: 15px;
       }
 
       #logo {
-        width: 180px;
-        height: 180px;
+        width: 150px;
+        height: 150px;
       }
 
       #chat {
-        height: 240px;
+        height: 200px;
+      }
+
+      .formation-item {
+        padding: 10px;
       }
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="header">
-      <h1>JARVIS</h1>
-      <p>ASSISTANT PERSONNEL IA</p>
+  <!-- SIDEBAR GAUCHE : Formations -->
+  <div id="sidebar-formations">
+    <h2>📅 Prochaines Formations</h2>
+    <div id="formations-list" class="formations-loading">
+      Chargement...
     </div>
+  </div>
 
+  <!-- ZONE CENTRALE : JARVIS -->
+  <div id="app">
     <div id="chat">
       <img id="logo" src="icon.png" alt="Logo JARVIS Arc Reactor">
       <div id="status">Prêt...</div>
@@ -585,9 +649,44 @@
       }
     });
 
+    // === CHARGEMENT DES FORMATIONS ===
+    const FORMATIONS_URL = "https://n8n.srv846378.hstgr.cloud/webhook/formations-airtable";
+
+    async function loadFormations() {
+      try {
+        const response = await fetch(FORMATIONS_URL);
+        const data = await response.json();
+
+        const formationsList = document.getElementById('formations-list');
+
+        if (!data.formations || data.formations.length === 0) {
+          formationsList.innerHTML = '<div class="formations-loading">Aucune formation à venir</div>';
+          return;
+        }
+
+        // Afficher les 5 prochaines formations
+        const formations = data.formations.slice(0, 5);
+        formationsList.innerHTML = formations.map(formation => `
+          <div class="formation-item">
+            <div class="formation-client">${formation.client}</div>
+            <div class="formation-date">📅 ${formation.date}</div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Erreur chargement formations:', error);
+        document.getElementById('formations-list').innerHTML =
+          '<div class="formations-loading" style="color:#ef4444;">❌ Erreur de chargement</div>';
+      }
+    }
+
     // === INITIALISATION ===
     updateHistory();
     showStatus("✓ Système prêt");
+    loadFormations(); // Charger les formations au démarrage
+
+    // Recharger les formations toutes les 5 minutes
+    setInterval(loadFormations, 5 * 60 * 1000);
 
     // === SERVICE WORKER POUR PWA ===
     if ('serviceWorker' in navigator) {
