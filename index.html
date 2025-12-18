@@ -95,7 +95,7 @@
 
     /* Styles pour l'agenda (nouveau format) */
     .agenda-content {
-      line-height: 1.8;
+      line-height: 1.5;
       font-size: 13px;
     }
 
@@ -104,8 +104,12 @@
       font-size: 15px;
       font-weight: 600;
       display: block;
-      margin-top: 15px;
-      margin-bottom: 8px;
+      margin-top: 8px;
+      margin-bottom: 5px;
+    }
+
+    .agenda-content strong:first-child {
+      margin-top: 0; /* Pas de marge pour le premier jour */
     }
 
     .agenda-horaire {
@@ -427,8 +431,16 @@
 
       #sidebar-formations,
       #sidebar-agenda {
-        max-height: 200px;
+        max-height: 350px; /* Augmenté pour mobile */
         padding: 15px;
+        overflow-y: auto; /* Scroll si besoin */
+        -webkit-overflow-scrolling: touch; /* Scroll fluide iOS */
+      }
+
+      #sidebar-formations h2,
+      #sidebar-agenda h2 {
+        font-size: 16px; /* Légèrement plus petit sur mobile */
+        margin-bottom: 12px;
       }
 
       #app {
@@ -446,6 +458,14 @@
 
       .formation-item {
         padding: 10px;
+      }
+
+      .agenda-content {
+        font-size: 12px; /* Légèrement plus petit sur mobile */
+      }
+
+      .agenda-content strong {
+        font-size: 14px;
       }
     }
   </style>
