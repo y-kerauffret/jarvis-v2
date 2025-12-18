@@ -746,23 +746,17 @@
 
         const agendaList = document.getElementById('agenda-list');
 
-        if (!data.jours || data.jours.length === 0) {
+        if (!data.affichage_agenda || data.affichage_agenda.trim() === '') {
           agendaList.innerHTML = '<div class="formations-loading">Aucun RDV prévu</div>';
           return;
         }
 
-        // Afficher les RDV par jour
-        agendaList.innerHTML = data.jours.map(jour => `
-          <div class="jour-section">
-            <div class="jour-titre">${jour.titre}</div>
-            ${jour.rdv.map(rdv => `
-              <div class="rdv-item">
-                <div class="rdv-horaire">${rdv.horaire}</div>
-                <div class="rdv-titre">${rdv.titre}</div>
-              </div>
-            `).join('')}
-          </div>
-        `).join('');
+        // Convertir le texte markdown en HTML
+        let html = data.affichage_agenda
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **texte** → <strong>texte</strong>
+          .replace(/\n/g, '<br>'); // \n → <br>
+
+        agendaList.innerHTML = `<div class="agenda-content">${html}</div>`;
 
       } catch (error) {
         console.error('Erreur chargement agenda:', error);
