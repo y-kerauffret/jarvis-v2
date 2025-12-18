@@ -70,12 +70,12 @@ Créer un webhook qui retourne les RDV d'aujourd'hui (J) et de demain (J+1) au f
 - **Operation** : `Get Many`
 - **Calendar** : Sélectionnez votre calendrier
 - **Start** (Time du début) :
-  ```javascript
-  {{ $now.startOf('day').toISO() }}
+  ```
+  $now.startOf('day').toISO()
   ```
 - **End** (Time de fin) :
-  ```javascript
-  {{ $now.endOf('day').toISO() }}
+  ```
+  $now.endOf('day').toISO()
   ```
 - **Options** :
   - **Order By** : `startTime`
@@ -91,12 +91,12 @@ Créer un webhook qui retourne les RDV d'aujourd'hui (J) et de demain (J+1) au f
 - **Operation** : `Get Many`
 - **Calendar** : Sélectionnez votre calendrier
 - **Start** :
-  ```javascript
-  {{ $now.plus({days: 1}).startOf('day').toISO() }}
+  ```
+  $now.plus({days: 1}).startOf('day').toISO()
   ```
 - **End** :
-  ```javascript
-  {{ $now.plus({days: 1}).endOf('day').toISO() }}
+  ```
+  $now.plus({days: 1}).endOf('day').toISO()
   ```
 - **Options** :
   - **Order By** : `startTime`
@@ -199,7 +199,7 @@ return [{ json: { jours } }];
 
 **Configuration** :
 - **Respond With** : `JSON`
-- **Response Body** : `={{ $json }}`
+- **Response Body** : `$json`
 
 ---
 
