@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jarvis-v2-cache-v1';
+const CACHE_NAME = 'jarvis-v2-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -42,6 +42,27 @@ self.addEventListener('fetch', (event) => {
     return event.respondWith(fetch(event.request));
   }
 
+  // Pour index.html : stratégie Network First (toujours essayer le réseau d'abord)
+  if (event.request.url.includes('index.html') || event.request.url.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Mettre à jour le cache avec la nouvelle version
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Si le réseau échoue, utiliser le cache
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Pour les autres ressources : stratégie Cache First (comme avant)
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

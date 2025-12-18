@@ -93,6 +93,26 @@
       color: #ffb347;
     }
 
+    /* Styles pour l'agenda (nouveau format) */
+    .agenda-content {
+      line-height: 1.8;
+      font-size: 13px;
+    }
+
+    .agenda-content strong {
+      color: #ffd700; /* Jaune pour les jours */
+      font-size: 15px;
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+
+    .agenda-horaire {
+      color: #66ccff; /* Bleu comme les dates des formations */
+      font-weight: 600;
+    }
+
     .formation-item {
       background: rgba(14, 14, 14, 0.8);
       padding: 12px;
@@ -751,9 +771,10 @@
           return;
         }
 
-        // Convertir le texte markdown en HTML
+        // Convertir le texte markdown en HTML avec styles
         let html = data.affichage_agenda
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **texte** → <strong>texte</strong>
+          .replace(/(\d{1,2}h\d{0,2}\s*-\s*\d{1,2}h\d{0,2})/g, '<span class="agenda-horaire">$1</span>') // horaires en bleu
           .replace(/\n/g, '<br>'); // \n → <br>
 
         agendaList.innerHTML = `<div class="agenda-content">${html}</div>`;
