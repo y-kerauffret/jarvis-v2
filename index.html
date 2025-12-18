@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="JARVIS - Tableau de bord formateur">
   <meta name="theme-color" content="#0a0a0a">
-  <title>JARVIS Dashboard</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>JARVIS Dashboard v2.1</title>
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <style>
@@ -27,8 +30,9 @@
       overflow-x: hidden;
     }
 
-    /* SIDEBAR GAUCHE - Formations */
-    #sidebar-formations {
+    /* SIDEBARS - Formations & Agenda */
+    #sidebar-formations,
+    #sidebar-agenda {
       width: 300px;
       background: rgba(27, 27, 27, 0.95);
       border-radius: 15px;
@@ -39,13 +43,54 @@
       overflow-y: auto;
     }
 
-    #sidebar-formations h2 {
+    #sidebar-formations h2,
+    #sidebar-agenda h2 {
       font-size: 18px;
       color: #ffd700;
       text-align: center;
       margin-bottom: 15px;
       padding-bottom: 10px;
       border-bottom: 2px solid rgba(255, 140, 0, 0.3);
+    }
+
+    /* Styles pour les RDV */
+    .jour-section {
+      margin-bottom: 20px;
+    }
+
+    .jour-titre {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffd700;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+    }
+
+    .rdv-item {
+      background: rgba(14, 14, 14, 0.8);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 3px solid #66ccff;
+      transition: all 0.3s;
+    }
+
+    .rdv-item:hover {
+      background: rgba(20, 20, 20, 0.9);
+      transform: translateX(5px);
+    }
+
+    .rdv-horaire {
+      font-size: 13px;
+      font-weight: 600;
+      color: #66ccff;
+      margin-bottom: 3px;
+    }
+
+    .rdv-titre {
+      font-size: 12px;
+      color: #ffb347;
     }
 
     .formation-item {
@@ -342,7 +387,8 @@
         flex-direction: column;
       }
 
-      #sidebar-formations {
+      #sidebar-formations,
+      #sidebar-agenda {
         width: 100%;
         max-height: 300px;
         margin-bottom: 20px;
@@ -359,7 +405,8 @@
         padding: 10px;
       }
 
-      #sidebar-formations {
+      #sidebar-formations,
+      #sidebar-agenda {
         max-height: 200px;
         padding: 15px;
       }
@@ -421,7 +468,15 @@
 
     <div id="footer">
       © <span>JARVIS</span> — Design by YK
-      <span class="version">v2.0 - Voice Enabled</span>
+      <span class="version">v2.1 - Dashboard</span>
+    </div>
+  </div>
+
+  <!-- SIDEBAR DROITE : Agenda -->
+  <div id="sidebar-agenda">
+    <h2>📅 Prochains RDV</h2>
+    <div id="agenda-list" class="formations-loading">
+      Chargement...
     </div>
   </div>
 
@@ -681,13 +736,52 @@
       }
     }
 
+    // === CHARGEMENT DE L'AGENDA ===
+    const AGENDA_URL = "https://n8n.srv846378.hstgr.cloud/webhook/agenda_rdv";
+
+    async function loadAgenda() {
+      try {
+        const response = await fetch(AGENDA_URL);
+        const data = await response.json();
+
+        const agendaList = document.getElementById('agenda-list');
+
+        if (!data.jours || data.jours.length === 0) {
+          agendaList.innerHTML = '<div class="formations-loading">Aucun RDV prévu</div>';
+          return;
+        }
+
+        // Afficher les RDV par jour
+        agendaList.innerHTML = data.jours.map(jour => `
+          <div class="jour-section">
+            <div class="jour-titre">${jour.titre}</div>
+            ${jour.rdv.map(rdv => `
+              <div class="rdv-item">
+                <div class="rdv-horaire">${rdv.horaire}</div>
+                <div class="rdv-titre">${rdv.titre}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Erreur chargement agenda:', error);
+        document.getElementById('agenda-list').innerHTML =
+          '<div class="formations-loading" style="color:#ef4444;">❌ Erreur de chargement</div>';
+      }
+    }
+
     // === INITIALISATION ===
     updateHistory();
     showStatus("✓ Système prêt");
     loadFormations(); // Charger les formations au démarrage
+    loadAgenda(); // Charger l'agenda au démarrage
 
-    // Recharger les formations toutes les 5 minutes
-    setInterval(loadFormations, 5 * 60 * 1000);
+    // Recharger toutes les 5 minutes
+    setInterval(() => {
+      loadFormations();
+      loadAgenda();
+    }, 5 * 60 * 1000);
 
     // === SERVICE WORKER POUR PWA ===
     if ('serviceWorker' in navigator) {
